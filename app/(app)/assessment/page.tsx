@@ -163,21 +163,69 @@ export default function AssessmentPage() {
   const STEPS = mode === "easy" ? EASY_STEPS : ADVANCED_STEPS
 
   const canNext = () => {
-    if (mode === "easy") {
-      if (step === 0) return form.addictionType.length > 0 && !!form.age && !!form.gender && !!form.height && !!form.weight
-      if (step === 1) return form.frequencyPerWeek !== "" && form.durationYears !== "" && !!form.bmiCategory && form.unableToControl !== null && form.continuesDespiteHarm !== null && form.tolerance !== null && form.cravingIntensity > 0 && form.anxietyLevel > 0 && form.depressionScreening > 0 && !!form.employmentStatus && form.chronicIllness !== null
-      if (step === 2) return true
+  if (mode === "easy") {
+
+    if (step === 0)
+      return (
+        form.addictionType.length > 0 &&
+        form.age > 0 &&
+        form.gender &&
+        form.height > 0 &&
+        form.weight > 0
+      )
+
+    if (step === 1)
+      return (
+        form.frequencyPerWeek !== "" &&
+        form.durationYears !== "" &&
+        !!form.bmiCategory &&
+        form.unableToControl !== null &&
+        form.continuesDespiteHarm !== null &&
+        form.tolerance !== null
+      )
+
+    if (step === 2)
+      return (
+        form.cravingIntensity > 0 &&
+        form.anxietyLevel > 0 &&
+        form.depressionScreening > 0 &&
+        !!form.employmentStatus &&
+        form.chronicIllness !== null
+      )
+
+    return true
+
+  } else {
+
+    if (step === 0)
+      return (
+        form.addictionType.length > 0 &&
+        !!form.primarySubstance &&
+        form.age > 0 &&
+        form.gender &&
+        form.height > 0 &&
+        form.weight > 0
+      )
+
+    if (step === 1)
+      return form.frequencyPerWeek !== "" && form.durationYears !== ""
+
+    if (step === 2)
+      return !!form.bmiCategory
+
+    if (step === 3)
       return true
-    } else {
-      if (step === 0) return form.addictionType.length > 0 && !!form.primarySubstance && !!form.age && !!form.gender && !!form.height && !!form.weight
-      if (step === 1) return form.frequencyPerWeek !== "" && form.durationYears !== ""
-      if (step === 2) return !!form.bmiCategory
-      if (step === 3) return true
-      if (step === 4) return !!form.employmentStatus
-      if (step === 5) return true
+
+    if (step === 4)
+      return !!form.employmentStatus
+
+    if (step === 5)
       return true
-    }
+
+    return true
   }
+}
+  
 
   const handleSubmit = async () => {
     setLoading(true)
