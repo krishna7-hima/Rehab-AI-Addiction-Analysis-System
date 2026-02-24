@@ -162,76 +162,7 @@ export default function AssessmentPage() {
 
   const STEPS = mode === "easy" ? EASY_STEPS : ADVANCED_STEPS
 
-  const canNext = () => {
-  if (!mode) return true
-
-  const age = Number(form.age)
-  const height = Number(form.height)
-  const weight = Number(form.weight)
-
-  if (mode === "easy") {
-
-    if (step === 0) {
-      return (
-        form.addictionType.length > 0 &&
-        age > 0 &&
-        form.gender !== "" &&
-        height > 0 &&
-        weight > 0
-      )
-    }
-
-    if (step === 1) {
-      return (
-        form.frequencyPerWeek !== "" &&
-        form.durationYears !== "" &&
-        form.bmiCategory !== "" &&
-        form.unableToControl !== null &&
-        form.continuesDespiteHarm !== null &&
-        form.tolerance !== null
-      )
-    }
-
-    if (step === 2) {
-      return (
-        form.cravingIntensity > 0 &&
-        form.anxietyLevel > 0 &&
-        form.depressionScreening > 0 &&
-        form.employmentStatus !== ""
-      )
-    }
-
-    return true
-  }
-
-  // ADVANCED MODE
-  if (mode === "advanced") {
-
-    if (step === 0) {
-      return (
-        form.addictionType.length > 0 &&
-        form.primarySubstance !== "" &&
-        age > 0 &&
-        form.gender !== "" &&
-        height > 0 &&
-        weight > 0
-      )
-    }
-
-    if (step === 1)
-      return form.frequencyPerWeek !== "" && form.durationYears !== ""
-
-    if (step === 2)
-      return form.bmiCategory !== ""
-
-    if (step === 4)
-      return form.employmentStatus !== ""
-
-    return true
-  }
-
-  return false
-}
+  
   const handleSubmit = async () => {
     setLoading(true)
     try {
@@ -1346,11 +1277,11 @@ export default function AssessmentPage() {
             )}
 
 
-            {/* Navigation */}
-<div className="flex justify-between mt-8 pt-6 border-t border-border gap-3">
-  <Button
+          {/* Navigation */}
+         <div className="flex justify-between mt-8 pt-6 border-t border-border gap-3">
+         <Button
     variant="outline"
-    onClick={() => setStep((s) => s - 1)}
+    onClick={() => setStep((s) => Math.max(s - 1, 0))}
     disabled={step === 0}
   >
     <ChevronLeft className="w-4 h-4 mr-2" />
@@ -1370,7 +1301,7 @@ export default function AssessmentPage() {
 
     <Button
       onClick={() => {
-        if (step >= maxSteps - 1) {
+        if (step === maxSteps - 1) {
           handleSubmit()
         } else {
           setStep((s) => s + 1)
@@ -1378,13 +1309,24 @@ export default function AssessmentPage() {
       }}
       disabled={loading}
     >
-      {step >= maxSteps - 1 ? "🔬 Submit Assessment" : "Continue"}
-      {step < maxSteps - 1 && (
-        <ChevronRight className="w-4 h-4 ml-2" />
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          Processing...
+        </>
+      ) : step === maxSteps - 1 ? (
+        "🔬 Submit Assessment"
+      ) : (
+        <>
+          Continue
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </>
       )}
     </Button>
   </div>
 </div>
+
+
 
   )
 }
