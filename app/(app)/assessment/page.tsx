@@ -162,7 +162,74 @@ export default function AssessmentPage() {
 
   const STEPS = mode === "easy" ? EASY_STEPS : ADVANCED_STEPS
 
-  
+  const canNext = () => {
+  if (mode === "easy") {
+
+    if (step === 0) {
+      return (
+        form.addictionType.length > 0 &&
+        form.age > 0 &&
+        form.gender &&
+        form.height > 0 &&
+        form.weight > 0
+      )
+    }
+
+    if (step === 1) {
+      return (
+        form.frequencyPerWeek !== "" &&
+        form.durationYears !== "" &&
+        !!form.bmiCategory &&
+        form.unableToControl !== null &&
+        form.continuesDespiteHarm !== null &&
+        form.tolerance !== null
+      )
+    }
+
+    if (step === 2) {
+      return (
+        form.cravingIntensity > 0 &&
+        form.anxietyLevel > 0 &&
+        form.depressionScreening > 0 &&
+        !!form.employmentStatus &&
+        form.chronicIllness !== null
+      )
+    }
+
+    return true
+
+  } else {
+
+    if (step === 0) {
+      return (
+        form.addictionType.length > 0 &&
+        !!form.primarySubstance &&
+        form.age > 0 &&
+        form.gender &&
+        form.height > 0 &&
+        form.weight > 0
+      )
+    }
+
+    if (step === 1)
+      return form.frequencyPerWeek !== "" && form.durationYears !== ""
+
+    if (step === 2)
+      return !!form.bmiCategory
+
+    if (step === 3)
+      return true
+
+    if (step === 4)
+      return !!form.employmentStatus
+
+    if (step === 5)
+      return true
+
+    return true
+  }
+}
+
   const handleSubmit = async () => {
     setLoading(true)
     try {
@@ -1276,57 +1343,54 @@ export default function AssessmentPage() {
               </div>
             )}
 
+            {/* Navigation */}
+            <div className="flex justify-between mt-8 pt-6 border-t border-border gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setStep((s) => s - 1)}
+                disabled={step === 0}
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
 
-          {/* Navigation */}
-         <div className="flex justify-between mt-8 pt-6 border-t border-border gap-3">
-         <Button
-    variant="outline"
-    onClick={() => setStep((s) => Math.max(s - 1, 0))}
-    disabled={step === 0}
-  >
-    <ChevronLeft className="w-4 h-4 mr-2" />
-    Back
-  </Button>
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setMode(null)
+                    setStep(0)
+                  }}
+                >
+                  Change Mode
+                </Button>
 
-  <div className="flex gap-3">
-    <Button
-      variant="ghost"
-      onClick={() => {
-        setMode(null)
-        setStep(0)
-      }}
-    >
-      Change Mode
-    </Button>
+                {step < maxSteps - 1 ? (
+                  <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext()}>
+                    Continue
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit} disabled={loading || !canNext()}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      "🔬 Submit Assessment"
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-    <Button
-      onClick={() => {
-        if (step === maxSteps - 1) {
-          handleSubmit()
-        } else {
-          setStep((s) => s + 1)
-        }
-      }}
-      disabled={loading}
-    >
-      {loading ? (
-        <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          Processing...
-        </>
-      ) : step === maxSteps - 1 ? (
-        "🔬 Submit Assessment"
-      ) : (
-        <>
-          Continue
-          <ChevronRight className="w-4 h-4 ml-2" />
-        </>
-      )}
-    </Button>
-  </div>
-</div>
-
-
-
+        <p className="text-center text-xs text-muted-foreground mt-5">
+          Your responses are private and used only for your personalized health report
+        </p>
+      </div>
+    </div>
   )
 }
