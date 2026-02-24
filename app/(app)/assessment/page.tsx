@@ -163,69 +163,75 @@ export default function AssessmentPage() {
   const STEPS = mode === "easy" ? EASY_STEPS : ADVANCED_STEPS
 
   const canNext = () => {
+  if (!mode) return true
+
+  const age = Number(form.age)
+  const height = Number(form.height)
+  const weight = Number(form.weight)
+
   if (mode === "easy") {
 
-    if (step === 0)
+    if (step === 0) {
       return (
         form.addictionType.length > 0 &&
-        form.age > 0 &&
-        form.gender &&
-        form.height > 0 &&
-        form.weight > 0
+        age > 0 &&
+        form.gender !== "" &&
+        height > 0 &&
+        weight > 0
       )
+    }
 
-    if (step === 1)
+    if (step === 1) {
       return (
         form.frequencyPerWeek !== "" &&
         form.durationYears !== "" &&
-        !!form.bmiCategory &&
+        form.bmiCategory !== "" &&
         form.unableToControl !== null &&
         form.continuesDespiteHarm !== null &&
         form.tolerance !== null
       )
+    }
 
-    if (step === 2)
+    if (step === 2) {
       return (
         form.cravingIntensity > 0 &&
         form.anxietyLevel > 0 &&
         form.depressionScreening > 0 &&
-        !!form.employmentStatus &&
-        form.chronicIllness !== null
+        form.employmentStatus !== ""
       )
+    }
 
     return true
+  }
 
-  } else {
+  // ADVANCED MODE
+  if (mode === "advanced") {
 
-    if (step === 0)
+    if (step === 0) {
       return (
         form.addictionType.length > 0 &&
-        !!form.primarySubstance &&
-        form.age > 0 &&
-        form.gender &&
-        form.height > 0 &&
-        form.weight > 0
+        form.primarySubstance !== "" &&
+        age > 0 &&
+        form.gender !== "" &&
+        height > 0 &&
+        weight > 0
       )
+    }
 
     if (step === 1)
       return form.frequencyPerWeek !== "" && form.durationYears !== ""
 
     if (step === 2)
-      return !!form.bmiCategory
-
-    if (step === 3)
-      return true
+      return form.bmiCategory !== ""
 
     if (step === 4)
-      return !!form.employmentStatus
-
-    if (step === 5)
-      return true
+      return form.employmentStatus !== ""
 
     return true
   }
-}
 
+  return false
+}
   const handleSubmit = async () => {
     setLoading(true)
     try {
@@ -1362,7 +1368,7 @@ export default function AssessmentPage() {
                 </Button>
 
                 {step < maxSteps - 1 ? (
-                  <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext()}>
+                  <Button onClick={() => setStep((s) => s + 1)} >
                     Continue
                     <ChevronRight className="w-4 h-4 ml-2" />
                   </Button>
