@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   description:
     "AI-powered addiction severity assessment, organ risk prediction, disease probability analysis, and personalized recovery planning.",
   generator: "v0.app",
+  manifest: "/manifest.json",
   icons: {
     icon: [
       {
@@ -51,10 +52,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0066cc" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Rehab AI" />
+      </head>
       <body className="font-sans antialiased">
         {children}
         <Toaster position="top-right" richColors />
         <Analytics />
+        <script>
+          {`
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+          `}
+        </script>
       </body>
     </html>
   )
