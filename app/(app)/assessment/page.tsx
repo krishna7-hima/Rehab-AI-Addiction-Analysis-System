@@ -225,7 +225,6 @@ export default function AssessmentPage() {
     return true
   }
 }
-  
 
   const handleSubmit = async () => {
     setLoading(true)
