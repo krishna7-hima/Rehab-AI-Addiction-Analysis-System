@@ -1345,54 +1345,46 @@ export default function AssessmentPage() {
               </div>
             )}
 
+
             {/* Navigation */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-border gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setStep((s) => s - 1)}
-                disabled={step === 0}
-              >
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
+<div className="flex justify-between mt-8 pt-6 border-t border-border gap-3">
+  <Button
+    variant="outline"
+    onClick={() => setStep((s) => s - 1)}
+    disabled={step === 0}
+  >
+    <ChevronLeft className="w-4 h-4 mr-2" />
+    Back
+  </Button>
 
-              <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setMode(null)
-                    setStep(0)
-                  }}
-                >
-                  Change Mode
-                </Button>
+  <div className="flex gap-3">
+    <Button
+      variant="ghost"
+      onClick={() => {
+        setMode(null)
+        setStep(0)
+      }}
+    >
+      Change Mode
+    </Button>
 
-                {step < maxSteps - 1 ? (
-                  <Button onClick={() => setStep((s) => s + 1)} >
-                    Continue
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button onClick={handleSubmit} disabled={loading || !canNext()}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      "🔬 Submit Assessment"
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <Button
+      onClick={() => {
+        if (step >= maxSteps - 1) {
+          handleSubmit()
+        } else {
+          setStep((s) => s + 1)
+        }
+      }}
+      disabled={loading}
+    >
+      {step >= maxSteps - 1 ? "🔬 Submit Assessment" : "Continue"}
+      {step < maxSteps - 1 && (
+        <ChevronRight className="w-4 h-4 ml-2" />
+      )}
+    </Button>
+  </div>
+</div>
 
-        <p className="text-center text-xs text-muted-foreground mt-5">
-          Your responses are private and used only for your personalized health report
-        </p>
-      </div>
-    </div>
   )
 }
