@@ -3,9 +3,12 @@
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { UserX } from "lucide-react"
-import { store } from "@/lib/store"
-import { toast } from "sonner"
 
+/**
+ * Guest flow should collect basic profile details (name/age/gender/height/weight)
+ * to run assessment and generate plans.
+ * We route to /login?guest=true where the guest form already exists.
+ */
 export function GuestButton() {
   const router = useRouter()
 
@@ -15,9 +18,7 @@ export function GuestButton() {
       size="lg"
       className="gap-2 px-8"
       onClick={() => {
-        store.guestLogin()
-        toast.success("Welcome, Guest! Your data will be saved locally.")
-        router.push("/dashboard")
+        router.push("/login?guest=true")
       }}
     >
       <UserX className="h-4 w-4" />

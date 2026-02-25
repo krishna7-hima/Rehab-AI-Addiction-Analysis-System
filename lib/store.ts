@@ -94,11 +94,11 @@ export const store = {
   },
 
   guestLogin(
-    name: string,
-    age: number,
-    gender: "male" | "female" | "other",
-    weight: number,
-    height: number
+    name: string = "Guest",
+    age: number = 21,
+    gender: "male" | "female" | "other" = "other",
+    weight: number = 60,
+    height: number = 165
   ): UserProfile {
     const state = getState()
 
