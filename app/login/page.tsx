@@ -70,12 +70,19 @@ function LoginPageContent() {
     setLoading(true)
 
     setTimeout(() => {
-      const name = email.split("@")[0]
+      // Bug Fix #3: Reuse existing profile if present; otherwise use neutral defaults.
+      // This app uses localStorage (no real backend), so login just restores the session.
+      const existingUser = store.getUser()
+      const name = existingUser?.name || email.split("@")[0]
+      const age = existingUser?.age ?? 25
+      const gender = existingUser?.gender ?? "other"
+      const weight = existingUser?.weight ?? 70
+      const height = existingUser?.height ?? 170
 
-      store.login(email, name, 25, "male", 70, 170)
+      store.login(email, name, age, gender, weight, height)
 
       toast.success("Welcome back!")
-      router.push("/assessment")
+      router.push("/dashboard")
       setLoading(false)
     }, 500)
   }
