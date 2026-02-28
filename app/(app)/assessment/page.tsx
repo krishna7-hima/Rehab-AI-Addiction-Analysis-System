@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -17,8 +17,6 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  Zap,
-  ThumbsUp,
   MessageSquare,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -40,8 +38,7 @@ const ADDICTION_TYPES = [
   { value: "food", emoji: "🍔", label: "Food", desc: "Binge eating" },
 ] as const
 
-const EASY_STEPS = ["Profile", "Usage & Health", "Lifestyle"]
-const ADVANCED_STEPS = [
+const STEPS = [
   "Type & Profile",
   "Usage Pattern",
   "Physical Health",
@@ -63,10 +60,7 @@ const DEFAULT_FORM = {
   dailyFirstUseMinutes: 60,
   previousQuitAttempts: 0,
 
-  // Easy mode question
-  withdrawalSymptoms: null as boolean | null,
-
-  // Advanced DSM-5 questions
+  // DSM-5 questions
   toleranceWithdrawal: null as boolean | null,
   unableToControl: null as boolean | null,
   continuesDespiteHarm: null as boolean | null,
@@ -99,65 +93,8 @@ const DEFAULT_FORM = {
   accuracy: 5,
 }
 
-interface ModeSelectionProps {
-  onSelect: (mode: "easy" | "advanced") => void
-}
-
-function ModeSelection({ onSelect }: ModeSelectionProps) {
-  return (
-    <div className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-primary/5 via-background to-cyan-50/20 py-8 px-4 flex items-center justify-center">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <ClipboardList className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">Addiction Assessment</h1>
-          <p className="text-muted-foreground mt-2">Choose your assessment style</p>
-        </div>
-
-        <div className="space-y-3">
-          <Card
-            onClick={() => onSelect("easy")}
-            className="p-6 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="flex-1 text-left">
-                <CardTitle className="text-lg">Quick Assessment</CardTitle>
-                <CardDescription>15 essential questions · 2-3 minutes · Best for quick screening</CardDescription>
-                <p className="text-sm text-muted-foreground mt-2">✓ Basic severity evaluation</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card
-            onClick={() => onSelect("advanced")}
-            className="p-6 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all border-primary/20"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Zap className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="flex-1 text-left">
-                <CardTitle className="text-lg">Comprehensive Assessment</CardTitle>
-                <CardDescription>20+ detailed questions · 5-7 minutes · Complete health analysis</CardDescription>
-                <p className="text-sm text-muted-foreground mt-2">✓ In-depth evaluation with recovery plan</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground mt-8">You can retake assessments anytime from your dashboard</p>
-      </div>
-    </div>
-  )
-}
-
 export default function AssessmentPage() {
   const router = useRouter()
-  const [mode, setMode] = useState<"easy" | "advanced" | null>(null)
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState(DEFAULT_FORM)
@@ -171,12 +108,9 @@ export default function AssessmentPage() {
       updateForm(key, e.target.type === "checkbox" ? (e.target as any).checked : e.target.value)
     }
 
-  const STEPS = mode === "easy" ? EASY_STEPS : ADVANCED_STEPS
-
   const answered = (v: any) => v !== null && v !== undefined && v !== ""
   const numOk = (v: any) => answered(v) && !Number.isNaN(Number(v))
 
-  // ✅ FIX 1: Auto BMI category from height/weight (so Q11 won’t block Continue)
   const autoBmiCategory = useMemo(() => {
     const h = Number(form.height)
     const w = Number(form.weight)
@@ -192,47 +126,23 @@ export default function AssessmentPage() {
 
   const getMissingFields = (): string[] => {
     const missing: string[] = []
-    if (mode === "easy") {
-      if (step === 0) {
-        if (form.addictionType.length === 0) missing.push("Q1: Select at least one substance")
-        if (!numOk(form.age)) missing.push("Q2: Age is required")
-        if (!answered(form.gender)) missing.push("Q3: Gender is required")
-        if (!numOk(form.height)) missing.push("Q4: Height is required")
-        if (!numOk(form.weight)) missing.push("Q5: Weight is required")
-      }
-      if (step === 1) {
-        if (!numOk(form.frequencyPerWeek)) missing.push("Q6: Days per week is required")
-        if (!numOk(form.durationYears)) missing.push("Q7: Years of use is required")
-        if (!answered(effectiveBmiCategory)) missing.push("Q11: BMI category is required")
-        if (form.withdrawalSymptoms === null) missing.push("Q9: Withdrawal symptoms – please select Yes or No")
-        if (form.unableToControl === null) missing.push("Q12: Unable to control – please select Yes or No")
-        if (form.continuesDespiteHarm === null) missing.push("Q13: Continued despite harm – please select Yes or No")
-        if (form.tolerance === null) missing.push("Q14: Tolerance – please select Yes or No")
-      }
-      if (step === 2) {
-        if (form.chronicIllness === null) missing.push("Q19: Chronic illness – please select Yes or No")
-        if (!answered(form.employmentStatus)) missing.push("Q20: Employment status is required")
-      }
-    } else {
-      // advanced mode
-      if (step === 0) {
-        if (form.addictionType.length === 0) missing.push("Q1: Select at least one substance")
-        if (!answered(form.primarySubstance)) missing.push("Q2: Select your primary substance")
-        if (!numOk(form.age)) missing.push("Q3: Age is required")
-        if (!answered(form.gender)) missing.push("Q4: Gender is required")
-        if (!numOk(form.height)) missing.push("Q5: Height is required")
-        if (!numOk(form.weight)) missing.push("Q6: Weight is required")
-      }
-      if (step === 1) {
-        if (!numOk(form.frequencyPerWeek)) missing.push("Q5: Usage frequency is required")
-        if (!numOk(form.durationYears)) missing.push("Q6: Duration of use is required")
-      }
-      if (step === 2) {
-        if (!answered(effectiveBmiCategory)) missing.push("Q16: BMI category is required")
-      }
-      if (step === 4) {
-        if (!answered(form.employmentStatus)) missing.push("Q25: Employment status is required")
-      }
+    if (step === 0) {
+      if (form.addictionType.length === 0) missing.push("Q1: Select at least one substance")
+      if (!answered(form.primarySubstance)) missing.push("Q2: Select your primary substance")
+      if (!numOk(form.age)) missing.push("Q3: Age is required")
+      if (!answered(form.gender)) missing.push("Q4: Gender is required")
+      if (!numOk(form.height)) missing.push("Q5: Height is required")
+      if (!numOk(form.weight)) missing.push("Q6: Weight is required")
+    }
+    if (step === 1) {
+      if (!numOk(form.frequencyPerWeek)) missing.push("Q5: Usage frequency is required")
+      if (!numOk(form.durationYears)) missing.push("Q6: Duration of use is required")
+    }
+    if (step === 2) {
+      if (!answered(effectiveBmiCategory)) missing.push("Q16: BMI category is required")
+    }
+    if (step === 4) {
+      if (!answered(form.employmentStatus)) missing.push("Q25: Employment status is required")
     }
     return missing
   }
@@ -244,13 +154,12 @@ export default function AssessmentPage() {
     try {
       const primarySubstance = (form.primarySubstance || form.addictionType[0]) as AddictionType
 
-      // ✅ FIX 3: Remove duplicated keys + clean boolean mapping
       const input: AssessmentInput = {
         addictionType: primarySubstance,
         frequencyPerWeek: parseFloat(String(form.frequencyPerWeek || 0)),
         durationYears: parseFloat(String(form.durationYears || 0)),
         quantityLevel: parseInt(String(form.quantityLevel), 10),
-        withdrawalSymptoms: (mode === "easy" ? form.withdrawalSymptoms : form.toleranceWithdrawal) || false,
+        withdrawalSymptoms: form.toleranceWithdrawal || false,
 
         mentalStressLevel: parseInt(String(form.mentalStress), 10),
         sleepHours: parseFloat(String(form.sleepHours)),
@@ -316,7 +225,7 @@ export default function AssessmentPage() {
             feedback: form.feedback,
             assessmentDifficulty: form.assessmentDifficulty,
             accuracy: form.accuracy,
-            mode,
+            mode: "advanced",
             substancesUsed: form.addictionType,
             bmiCategory: effectiveBmiCategory,
           }),
@@ -351,12 +260,8 @@ export default function AssessmentPage() {
         </div>
         <Slider value={[currentValue]} onValueChange={([v]) => updateForm(name, v)} min={min} max={max} step={st} className="w-full" />
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>
-            {min} — {lowLabel}
-          </span>
-          <span>
-            {max} — {highLabel}
-          </span>
+          <span>{min} — {lowLabel}</span>
+          <span>{max} — {highLabel}</span>
         </div>
       </div>
     )
@@ -377,8 +282,8 @@ export default function AssessmentPage() {
               type="button"
               onClick={() => updateForm(name, value)}
               className={`flex-1 py-2.5 rounded-lg font-semibold text-sm border-2 transition-all ${currentValue === value
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:border-primary/50"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/50"
                 }`}
             >
               {value ? "✅ Yes" : "❌ No"}
@@ -389,9 +294,6 @@ export default function AssessmentPage() {
     )
   }
 
-  if (!mode) return <ModeSelection onSelect={setMode} />
-
-  const isEasy = mode === "easy"
   const maxSteps = STEPS.length
   const progressPercent = ((step + 1) / maxSteps) * 100
 
@@ -403,17 +305,13 @@ export default function AssessmentPage() {
             <ClipboardList className="w-7 h-7 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Addiction Assessment</h1>
-          <p className="text-muted-foreground mt-1">
-            {isEasy ? "Quick assessment · 15 questions · ~3 minutes" : "Comprehensive assessment · 20+ questions · ~5-7 minutes"}
-          </p>
+          <p className="text-muted-foreground mt-1">Comprehensive assessment · 20+ questions · ~5-7 minutes</p>
         </div>
 
         {/* Progress */}
         <div className="mb-6 space-y-2">
           <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-            <span>
-              Step {step + 1} of {maxSteps}: {STEPS[step]}
-            </span>
+            <span>Step {step + 1} of {maxSteps}: {STEPS[step]}</span>
             <span>{Math.round(progressPercent)}% complete</span>
           </div>
           <div className="w-full h-2.5 bg-border rounded-full overflow-hidden">
@@ -423,249 +321,9 @@ export default function AssessmentPage() {
 
         <Card className="shadow-lg">
           <CardContent className="pt-6">
-            {/* ─── EASY MODE ─── */}
-            {isEasy && step === 0 && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-bold">Let's start with you</h2>
 
-                <div>
-                  <p className="text-sm font-medium mb-3">
-                    <span className="text-primary font-bold mr-2">Q1</span>
-                    Which substances are you addressing? (Select all that apply)
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {ADDICTION_TYPES.map(({ value, emoji, label, desc }) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => {
-                          if (form.addictionType.includes(value)) {
-                            updateForm(
-                              "addictionType",
-                              form.addictionType.filter((t) => t !== value)
-                            )
-                          } else {
-                            updateForm("addictionType", [...form.addictionType, value])
-                          }
-                        }}
-                        className={`p-3 rounded-lg border-2 text-left cursor-pointer transition-all ${form.addictionType.includes(value) ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-                          }`}
-                      >
-                        <div className="flex items-start gap-2">
-                          <div className="mt-1">
-                            <input type="checkbox" readOnly checked={form.addictionType.includes(value)} className="cursor-pointer" />
-                          </div>
-                          <div className="flex-1">
-                            <span className="text-2xl">{emoji}</span>
-                            <div className="font-semibold text-sm mt-1">{label}</div>
-                            <div className="text-xs text-muted-foreground">{desc}</div>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm">
-                    <span className="text-primary font-bold mr-2">Q2</span>
-                    Your current age *
-                  </Label>
-                  <Input type="number" min="10" max="100" placeholder="e.g. 28" value={form.age} onChange={handleInputChange("age")} className="mt-2" />
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium mb-3">
-                    <span className="text-primary font-bold mr-2">Q3</span>
-                    Gender
-                  </p>
-                  <div className="flex gap-3">
-                    {[
-                      ["male", "👨 Male"],
-                      ["female", "👩 Female"],
-                      ["other", "⚧ Other"],
-                    ].map(([value, label]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => updateForm("gender", value)}
-                        className={`flex-1 py-2.5 rounded-lg font-medium text-sm border-2 transition-all ${form.gender === value ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/50"
-                          }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm">
-                      <span className="text-primary font-bold mr-2">Q4</span>
-                      Height (cm) *
-                    </Label>
-                    <Input type="number" min="100" max="250" placeholder="e.g. 175" value={form.height} onChange={handleInputChange("height")} className="mt-2" />
-                  </div>
-                  <div>
-                    <Label className="text-sm">
-                      <span className="text-primary font-bold mr-2">Q5</span>
-                      Weight (kg) *
-                    </Label>
-                    <Input type="number" min="30" max="200" step="0.5" placeholder="e.g. 75" value={form.weight} onChange={handleInputChange("weight")} className="mt-2" />
-                  </div>
-                </div>
-
-                {/* Auto BMI display */}
-                {answered(autoBmiCategory) && (
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-sm">
-                    <span className="font-semibold">Auto BMI Category:</span>{" "}
-                    {autoBmiCategory === "underweight"
-                      ? "Underweight"
-                      : autoBmiCategory === "normal"
-                        ? "Normal"
-                        : autoBmiCategory === "overweight"
-                          ? "Overweight"
-                          : "Obese"}
-                    <span className="text-xs text-muted-foreground"> (You can still select manually in next step)</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {isEasy && step === 1 && (
-              <div className="space-y-5">
-                <h2 className="text-xl font-bold">Usage & Health</h2>
-
-                <div>
-                  <Label className="text-sm">
-                    <span className="text-primary font-bold mr-2">Q6</span>
-                    Days per week *
-                  </Label>
-                  <Input type="number" min="0" max="7" step="0.5" placeholder="0–7" value={form.frequencyPerWeek} onChange={handleInputChange("frequencyPerWeek")} className="mt-2" />
-                </div>
-
-                <div>
-                  <Label className="text-sm">
-                    <span className="text-primary font-bold mr-2">Q7</span>
-                    Years of use *
-                  </Label>
-                  <Input type="number" min="0" max="60" step="0.5" placeholder="e.g. 3.5" value={form.durationYears} onChange={handleInputChange("durationYears")} className="mt-2" />
-                </div>
-
-                <SliderQuestion label="Amount per session" name="quantityLevel" min={1} max={5} lowLabel="Very little" highLabel="Very large" qNum={8} />
-
-                <YesNoButtons label="Do you experience withdrawal symptoms?" name="withdrawalSymptoms" qNum={9} />
-
-                <SliderQuestion label="Overall physical health" name="physicalHealthRating" min={1} max={5} lowLabel="Very poor" highLabel="Excellent" qNum={10} />
-
-                {/* ✅ BMI: can be auto or manual */}
-                <div>
-                  <Label className="text-sm">
-                    <span className="text-primary font-bold mr-2">Q11</span>
-                    Your BMI category *
-                  </Label>
-
-                  {answered(autoBmiCategory) && !answered(form.bmiCategory) && (
-                    <p className="text-xs text-green-700 mt-2">
-                      ✓ Auto-detected BMI category from height/weight:{" "}
-                      <span className="font-semibold">{autoBmiCategory}</span>
-                    </p>
-                  )}
-
-                  <Select value={form.bmiCategory} onValueChange={(v) => updateForm("bmiCategory", v)}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Select category (optional if auto-detected)..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="underweight">Underweight (BMI &lt; 18.5)</SelectItem>
-                      <SelectItem value="normal">Normal (BMI 18.5–24.9)</SelectItem>
-                      <SelectItem value="overweight">Overweight (BMI 25–29.9)</SelectItem>
-                      <SelectItem value="obese">Obese (BMI ≥ 30)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <YesNoButtons label="Do you feel unable to control or stop your use?" name="unableToControl" qNum={12} />
-                <YesNoButtons label="Have you continued using despite knowing it causes problems?" name="continuesDespiteHarm" qNum={13} />
-                <YesNoButtons label="Do you require more of the substance to achieve the same effect?" name="tolerance" qNum={14} />
-              </div>
-            )}
-
-            {isEasy && step === 2 && (
-              <div className="space-y-5">
-                <h2 className="text-xl font-bold">Lifestyle & Support</h2>
-
-                <SliderQuestion label="Craving intensity" name="cravingIntensity" min={1} max={5} lowLabel="Mild cravings" highLabel="Extreme cravings" qNum={15} />
-                <SliderQuestion label="Anxiety level" name="anxietyLevel" min={1} max={5} lowLabel="No anxiety" highLabel="Severe anxiety" qNum={16} />
-                <SliderQuestion label="Depression/mood symptoms" name="depressionScreening" min={1} max={5} lowLabel="None" highLabel="Severe" qNum={17} />
-
-                <div>
-                  <Label className="text-sm">
-                    <span className="text-primary font-bold mr-2">Q18</span>
-                    Previous quit attempts *
-                  </Label>
-                  <Input type="number" min="0" max="50" placeholder="e.g. 3" value={form.previousQuitAttempts} onChange={handleInputChange("previousQuitAttempts")} className="mt-2" />
-                </div>
-
-                <YesNoButtons label="Do you have any chronic health issues?" name="chronicIllness" qNum={19} />
-
-                <div>
-                  <Label className="text-sm">
-                    <span className="text-primary font-bold mr-2">Q20</span>
-                    Employment status
-                  </Label>
-                  <Select value={form.employmentStatus} onValueChange={(v) => updateForm("employmentStatus", v)}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Select status..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="employed">Employed (full-time)</SelectItem>
-                      <SelectItem value="part-time">Part-time employment</SelectItem>
-                      <SelectItem value="unemployed">Unemployed</SelectItem>
-                      <SelectItem value="retired">Retired/Student</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 space-y-3">
-                  <h3 className="font-semibold text-sm flex items-center gap-2">
-                    <ThumbsUp className="w-4 h-4 text-green-600" />
-                    Quick Feedback (Optional)
-                  </h3>
-
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Was this assessment helpful?</p>
-                    <div className="flex gap-2">
-                      {[
-                        { value: "easy", label: "Yes 😊" },
-                        { value: "appropriate", label: "Somewhat 😐" },
-                        { value: "difficult", label: "No 😕" },
-                      ].map(({ value, label }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => updateForm("assessmentDifficulty", value)}
-                          className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-all ${form.assessmentDifficulty === value ? "border-green-600 bg-green-100 text-green-900" : "border-green-200 text-muted-foreground hover:border-green-400"
-                            }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <Alert className="bg-green-50 border-green-200">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">
-                    ✓ Assessment complete! Click <strong>Submit</strong> to get your results.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-
-            {/* ─── ADVANCED MODE (same UI, but uses effective BMI in canNext + cleaned submit mapping already) ─── */}
-            {!isEasy && step === 0 && (
+            {/* ─── STEP 0: Type & Profile ─── */}
+            {step === 0 && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold">Your Profile & Primary Substance</h2>
 
@@ -681,10 +339,7 @@ export default function AssessmentPage() {
                         type="button"
                         onClick={() => {
                           if (form.addictionType.includes(value)) {
-                            updateForm(
-                              "addictionType",
-                              form.addictionType.filter((t) => t !== value)
-                            )
+                            updateForm("addictionType", form.addictionType.filter((t) => t !== value))
                             if (form.primarySubstance === value) updateForm("primarySubstance", "")
                           } else {
                             updateForm("addictionType", [...form.addictionType, value])
@@ -782,19 +437,14 @@ export default function AssessmentPage() {
                 {answered(autoBmiCategory) && (
                   <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-sm">
                     <span className="font-semibold">Auto BMI Category:</span>{" "}
-                    {autoBmiCategory === "underweight"
-                      ? "Underweight"
-                      : autoBmiCategory === "normal"
-                        ? "Normal"
-                        : autoBmiCategory === "overweight"
-                          ? "Overweight"
-                          : "Obese"}
+                    {autoBmiCategory === "underweight" ? "Underweight" : autoBmiCategory === "normal" ? "Normal" : autoBmiCategory === "overweight" ? "Overweight" : "Obese"}
                   </div>
                 )}
               </div>
             )}
 
-            {!isEasy && step === 1 && (
+            {/* ─── STEP 1: Usage Pattern ─── */}
+            {step === 1 && (
               <div className="space-y-5">
                 <h2 className="text-xl font-bold">Addiction Severity (Clinical Assessment)</h2>
                 <p className="text-xs text-muted-foreground mb-3">Based on DSM-5 Diagnostic Criteria</p>
@@ -828,7 +478,8 @@ export default function AssessmentPage() {
               </div>
             )}
 
-            {!isEasy && step === 2 && (
+            {/* ─── STEP 2: Physical Health ─── */}
+            {step === 2 && (
               <div className="space-y-5">
                 <h2 className="text-xl font-bold">Usage Impact on Life (DSM-5 Criteria)</h2>
 
@@ -869,7 +520,8 @@ export default function AssessmentPage() {
               </div>
             )}
 
-            {!isEasy && step === 3 && (
+            {/* ─── STEP 3: Mental & Emotional ─── */}
+            {step === 3 && (
               <div className="space-y-5">
                 <h2 className="text-xl font-bold">Physical & Mental Health</h2>
 
@@ -882,7 +534,8 @@ export default function AssessmentPage() {
               </div>
             )}
 
-            {!isEasy && step === 4 && (
+            {/* ─── STEP 4: Social & Background ─── */}
+            {step === 4 && (
               <div className="space-y-5">
                 <h2 className="text-xl font-bold">Social & Background Factors</h2>
 
@@ -911,7 +564,8 @@ export default function AssessmentPage() {
               </div>
             )}
 
-            {!isEasy && step === 5 && (
+            {/* ─── STEP 5: Review & Feedback ─── */}
+            {step === 5 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-xl font-bold mb-2">Review & Feedback</h2>
@@ -1030,7 +684,7 @@ export default function AssessmentPage() {
               </div>
             )}
 
-            {/* Navigation */}
+            {/* Missing fields warning */}
             {!canNext() && getMissingFields().length > 0 && (
               <div className="mt-6 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-xs font-semibold text-amber-800 mb-1">⚠️ Please answer the following to continue:</p>
@@ -1041,6 +695,8 @@ export default function AssessmentPage() {
                 </ul>
               </div>
             )}
+
+            {/* Navigation */}
             <div className="flex justify-between mt-4 pt-6 border-t border-border gap-3">
               <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 0}>
                 <ChevronLeft className="w-4 h-4 mr-2" />
@@ -1048,17 +704,6 @@ export default function AssessmentPage() {
               </Button>
 
               <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setMode(null)
-                    setStep(0)
-                    setForm(DEFAULT_FORM)
-                  }}
-                >
-                  Change Mode
-                </Button>
-
                 {step < maxSteps - 1 ? (
                   <Button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canNext()}>
                     Continue
