@@ -156,8 +156,56 @@ This ensures that risk increases exponentially as severity and duration grow, ca
 
 ---
 
-## 9. Appendix: Appendix (Full Code Explanation)
-- **`app/assessment/page.tsx`**: Multi-step React form with real-time validation feedback.
-- **`lib/ml-engine.ts`**: The mathematical core containing weighted scoring and risk prediction logic.
-- **`lib/store.ts`**: Persistence layer using `localStorage` API for privacy-first data management.
-- **`components/chat-assistant.tsx`**: Stateful UI component for asynchronous recovery support.
+## 10. Technology Stack
+
+RecoverAI is built using a modern, scalable, and privacy-centric tech stack:
+
+- **Framework**: [Next.js 14+](https://nextjs.org/) (React) – Utilizing App Router and Server Components.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) – For high-performance, responsive design.
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) – Based on [Radix UI](https://www.radix-ui.com/) primitives.
+- **State Management**: **Custom Store** – Optimized for `localStorage` to ensure 100% data privacy (no server-side DB required).
+- **Icons**: [Lucide React](https://lucide.dev/) – For clean, consistent iconography.
+- **Animations**: [Tailwind Animate](https://github.com/jamiebuilds/tailwind-animate) – For smooth UI transitions.
+- **Logic**: **TypeScript** – Strongly typed ML-engine for severity and risk calculations.
+- **Deployment**: [Vercel](https://vercel.com/) – Global edge deployment and CI/CD.
+
+---
+
+## 11. Mobile App Conversion (APK Guide)
+
+To turn this project into a mobile application (APK for Android or IPA for iOS) while keeping the Vercel website live, we recommend using **Capacitor**:
+
+### 11.1 Installation Steps
+1. **Initialize Capacitor**:
+   ```bash
+   npm install @capacitor/core @capacitor/cli
+   npx cap init [AppName] [AppID]
+   ```
+2. **Add Android Platform**:
+   ```bash
+   npm install @capacitor/android
+   npx cap add android
+   ```
+3. **Build and Sync**:
+   Every time you update the web code:
+   ```bash
+   npm run build
+   npx cap sync
+   ```
+4. **Generate APK**:
+   ```bash
+   npx cap open android
+   ```
+   *This opens Android Studio, where you can click "Build > Build APK" to generate the final file.*
+
+### 11.2 Why Capacitor?
+- **Single Codebase**: One set of code runs on Web, Android, and iOS.
+- **Native Access**: Allows adding features like Push Notifications or Biometric Login later.
+- **Vercel Sync**: You can keep deploying to Vercel while simultaneously building APKs.
+
+---
+
+## 12. References Section
+- DSM-5 Criteria for Substance Use Disorders.
+- WHO Guidelines for Alcohol and Tobacco Cessation.
+- Sigmoid Function and Logistic Regression in Health Prediction.
