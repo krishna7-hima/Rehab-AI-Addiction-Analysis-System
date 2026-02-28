@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AppNav } from "@/components/app-nav"
+import { ChatAssistant } from "@/components/chat-assistant"
 import { store } from "@/lib/store"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +30,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <main className="mx-auto max-w-7xl px-4 py-8 lg:px-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+        {children}
+      </main>
+      <ChatAssistant />
     </div>
   )
 }
