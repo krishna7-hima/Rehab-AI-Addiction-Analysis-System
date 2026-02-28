@@ -48,7 +48,7 @@ export function ChatAssistant() {
         setIsLoading(true)
 
         try {
-            const response = await fetch("/api/chat", {
+            const response = await fetch("https://rehab-ai-addiction-system.vercel.app/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ messages: [...messages, userMessage] }),
@@ -99,8 +99,8 @@ export function ChatAssistant() {
                                                     {message.role === "user" ? <User className="w-4 h-4 text-primary" /> : <Sparkles className="w-4 h-4 text-primary" />}
                                                 </div>
                                                 <div className={`p-3 rounded-2xl text-sm leading-relaxed ${message.role === "user"
-                                                        ? "bg-primary text-primary-foreground rounded-tr-none shadow-sm"
-                                                        : "bg-secondary text-foreground rounded-tl-none border border-border"
+                                                    ? "bg-primary text-primary-foreground rounded-tr-none shadow-sm"
+                                                    : "bg-secondary text-foreground rounded-tl-none border border-border"
                                                     }`}>
                                                     {message.content}
                                                 </div>

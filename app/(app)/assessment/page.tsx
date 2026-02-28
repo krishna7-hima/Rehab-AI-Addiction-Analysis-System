@@ -217,7 +217,7 @@ export default function AssessmentPage() {
       }
 
       try {
-        await fetch("/api/assessments", {
+        await fetch("https://rehab-ai-addiction-system.vercel.app/api/assessments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -282,8 +282,8 @@ export default function AssessmentPage() {
               type="button"
               onClick={() => updateForm(name, value)}
               className={`flex-1 py-2.5 rounded-lg font-semibold text-sm border-2 transition-all ${currentValue === value
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/50"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-primary/50"
                 }`}
             >
               {value ? "✅ Yes" : "❌ No"}
